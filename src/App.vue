@@ -23,37 +23,52 @@ export default {
   methods: {
     init() {
       this.createScene()//创建场景
-      this.createCaizhi()
+      this.createCaizhi()//创建物体
       this.createCamera()//创建相机
       this.createRenderer()//创建渲染器
       this.createCountrols()//创建控物对象
       this.createSprites()//创建粒子
-      // this.initMobile()// 键盘控制
-      this.createLight()
-      // const axesHelper=new THREE.AxesHelper(140)
-      // this.scene.add(axesHelper)
-      this.addFog()
+      this.initMobile()// 键盘控制
+      this.createLight()//创建灯光
+      this.addFog()//创建雾化
     },
+    //渲染器
     createRenderer(){
       this.renderer=new THREE.WebGLRenderer({alpha: true});
       this.renderer.setSize(this.container.clientWidth,this.container.clientHeight)
       this.renderer.autoClear = false;
       this.renderer.setClearColor(0x000000, 1);
-      // this.renderer.shadowMap.enabled = true
       this.renderer.shadowMapEnabled = true;
       this.container.appendChild(this.renderer.domElement);
     },
     // 动画
     animate() {
+      const that=this
       this.controls.update()
       // 键盘控制物体移动
-      // if (this.moveForward) {
-      //   //w
-      //   this.box.position.y += 1;
-      // }
-      this.box.rotation.y += 0.0080;
-      // this.light.rotation.y += 0.0080;
+      if (that.moveForward) {
+        //w
+        this.box.position.y += 1;
+      }
+      if (that.moveLeft) {
+        //w
+        this.box.position.z += 1;
+      }
+      if (that.moveBackward) {
+        //w
+        this.box.position.y -= 1;
+      }
+      if (that.moveRighta) {
+        //w
+        this.box.position.z -= 1;
+      }
+      // 小球旋转
+      // this.box.rotation.y += 0.0080;
+      // 灯光旋转
+      this.light.rotation.y += 0.0080;
+      // 大球旋转
       this.meshGeometry.rotation.y -= 0.0040;
+      // 云层旋转
       this.meshYun.rotation.y -= 0.0040;
       // 粒子转动
       this.particle.rotation.y -= 0.0050;
@@ -61,10 +76,11 @@ export default {
       this.renderer.render(this.scene, this.camera);
       requestAnimationFrame(this.animate);
     },
-    
+    // 场景
     createScene(){
       this.scene = new THREE.Scene();
     },
+    // 雾化
     addFog(){
       this.scene.fog = new THREE.Fog('#00CCFF', 1, 900)
     },
@@ -91,26 +107,25 @@ export default {
       this.scene.add(this.particle)
     },
     createCaizhi(){
-      //纹理贴图 球体
+      //大球
       const loaderGeometry=new THREE.TextureLoader().load(require('../public/2.jpg'))
       const materialGeometry = new THREE.MeshStandardMaterial({map:loaderGeometry})
       this.meshGeometry = new THREE.Mesh(new THREE.SphereGeometry(125, 30, 20), materialGeometry);
       this.meshGeometry.position.set(0,-3,0)
-
       // 云层
       const loaderYun=new THREE.TextureLoader().load(require('../public/云层.png'))
       const materiaYun = new THREE.MeshBasicMaterial({map:loaderYun,transparent: true,opacity: 0.25})
       this.meshYun = new THREE.Mesh(new THREE.SphereGeometry(135, 30, 20), materiaYun);
-
-      //月球
+      //小球
       this.box = new THREE.Object3D();
       const loaderBox=new THREE.TextureLoader().load(require('../public/4.jpg'))
       const materialBox=new THREE.MeshBasicMaterial({map:loaderBox})
       this.meshBox=new THREE.Mesh(new THREE.SphereGeometry(8,30, 20),materialBox)
-      this.meshBox.position.set(60,0,165)
+      this.meshBox.position.set(110,0,135)
       this.box.add(this.meshBox)
-      this.scene.add(this.box,this.meshGeometry,this.meshYun,this.mesh3)
+      this.scene.add(this.box,this.meshGeometry,this.meshYun)
     },
+    // 相机
     createCamera(){
       this.container=document.querySelector('#container')
       this.camera=new THREE.PerspectiveCamera(
@@ -133,65 +148,62 @@ export default {
       this.light.add(this.lights[1],this.lights[2])
       this.scene.add(this.light)
     },
+    // 开启鼠标缓震
     createCountrols(){
-      // 开启鼠标缓震
       this.controls = new OrbitControls(this.camera, this.renderer.domElement);
       this.controls.enableDamping = true
     },
-    // 键盘
-    // initMobile(){
-    //   console.log(this.controls);
-    //   var onKeyDown=function(event){
-    //     switch(event.keyCode){
-    //       case 87: // w
-    //       this.moveForward = true;
+    // 键盘控制
+    initMobile(){
+      const that=this
+      // 键盘按下
+      var onKeyDown=function(event){
+        switch(event.keyCode){
+          case 87: // w
+          that.moveForward = true;
           
-    //       console.log(event.keyCode);
-    //       break;
+          console.log(event.keyCode);
+          break;
           
-    //       case 65: // a
-    //       this.moveLeft = true;
-    //       console.log(event.keyCode);
-    //       break;
-
-    //       case 83: // s
-    //       this.moveBackward = true;
-    //       console.log(event.keyCode);
-    //       break;
-
-    //       case 68: // d
-    //       this.moveRighta = true;
-    //       console.log(event.keyCode);
-    //       break;
-    //     }
-    //   };
-    //   var onKeyUp=function (event) {
-    //     switch (event.keyCode) {
-    //       case 87: // w
-    //       this.moveForward = false;
-    //       console.log(event.keyCode);
-    //       break;
-
-    //       case 65: // a
-    //       this.moveLeft = false;
-    //       console.log(event.keyCode);
-    //       break;
-
-    //       case 83: // s
-    //       this.moveBackward = false;
-    //       console.log(event.keyCode);
-    //       break;
-
-    //       case 68: // d
-    //       this.moveRighta = false;
-    //       console.log(event.keyCode);
-    //       break;
-
-    //     }
-    //   };
-    //   this.mesh1=document.addEventListener('keydown', onKeyDown, false);
-    //   this.mesh1=document.addEventListener('keyup', onKeyUp, false);
-    // },
+          case 65: // a
+          that.moveLeft = true;
+          console.log(event.keyCode);
+          break;
+          case 83: // s
+          that.moveBackward = true;
+          console.log(event.keyCode);
+          break;
+          case 68: // d
+          that.moveRighta = true;
+          console.log(event.keyCode);
+          break;
+        }
+      };
+      // 键盘弹起
+      var onKeyUp=function (event) {
+        switch (event.keyCode) {
+          case 87: // w
+          that.moveForward = false;
+          console.log(event.keyCode);
+          break;
+          case 65: // a
+          that.moveLeft = false;
+          console.log(event.keyCode);
+          break;
+          case 83: // s
+          that.moveBackward = false;
+          console.log(event.keyCode);
+          break;
+          case 68: // d
+          that.moveRighta = false;
+          console.log(event.keyCode);
+          break;
+        }
+      };
+      // 小球绑定事件
+      this.meshBox=document.addEventListener('keydown', onKeyDown, false);
+      this.meshBox=document.addEventListener('keyup', onKeyUp, false);
+    },
   }
 };
 </script>
@@ -209,5 +221,4 @@ export default {
   background: -moz-linear-gradient(top,  #074cfb 0%, #a7bdd7 100%); 
   background: linear-gradient(to bottom,  #074cfb 0%,#a7bdd7 100%); */
 }
-
 </style>
