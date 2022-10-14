@@ -1,126 +1,141 @@
 <template>
-    <div>
-      <div id="container"></div>
-    </div>
-  </template>
-  
-  <script>
-  import * as THREE from "three";
-  import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
-  export default {
-    data() {
-      return {
-        camera: null,
-        scene: null,
-        renderer: null,
-        mesh: null,
-        controls:null
-      };
+  <div>
+    <div id="container"></div>
+  </div>
+</template>
+
+<script>
+import * as THREE from "three";
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
+export default {
+  data() {
+    return {
+      camera: null,
+      scene: null,
+      renderer: null,
+      mesh: null,
+      controls:null,
+      particle:null
+    };
+  },
+  mounted() {
+    this.init();
+    this.animate();
+  },
+  methods: {
+    init() {
+      this.createScene()//创建场景
+      this.createCaizhi()
+      this.createCamera()//创建相机
+      this.createRenderer()//创建渲染器
+      this.createCountrols()//创建控物对象
+      this.createLight()//创建光源
+      this.createSprites()//创建粒子
+      
+      const axesHelper=new THREE.AxesHelper(140)
+      this.scene.add(axesHelper)
     },
-    methods: {
-      //初始化
-      init() {
-        //  创建场景对象Scene
-        this.scene = new THREE.Scene();
-  
-        // //网格模型添加到场景中
-        // let geometry = new THREE.SphereGeometry(0.1, 32,16);
-        // let material = new THREE.MeshNormalMaterial({
-        //   // color: "white"
-        // });
-        // this.mesh = new THREE.Mesh(geometry, material);
-        // this.mesh.position.set(0,-0.08,0)
-        // this.scene.add(this.mesh);
-  
-        // let geometry1=new THREE.BoxGeometry(0.0085,0.0085,0.0085)
-        // let material1=new THREE.MeshBasicMaterial({color:'#00FFFF'})
-        // this.mesh1=new THREE.Mesh(geometry1,material1)
-        // this.mesh1.position.set(0,0.023,0)
-        // this.scene.add(this.mesh1)
-        // 粒子
-        this.createSprites()
-  
-        /**
-         * 相机设置
-         */
-        let container = document.getElementById("container");
-        this.camera = new THREE.PerspectiveCamera(
-          5,
-          container.clientWidth / container.clientHeight,
-          1,
-          1000
-        );
-        this.camera.position.set(0,0.4,2)
-        this.scene.add(this.camera)
-  
-        const axesHelper = new THREE.AxesHelper(2)
-        this.scene.add(axesHelper)
-  
-        /**
-         * 创建渲染器对象
-         */
-        this.renderer = new THREE.WebGLRenderer();
-        this.renderer.setSize(container.clientWidth, container.clientHeight);
-        container.appendChild(this.renderer.domElement);
-  
-        //创建控件对象 
-        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-        this.controls.enableDamping = true
-      },
-      // 粒子
-      createSprites(){
-        const liziMaterial  = new THREE.SpriteMaterial()
-        for (let x = -5; x < 5; x++) {
-          for (let y = -5; y < 5; y++) {
-            //const particle = new THREE.Particle(material) // 创建粒子
-            const liziParticle = new THREE.Sprite(liziMaterial) // 创建粒子
-            liziParticle.position.set(x * 10, y * 10, 0)
-            this.scene.add(liziParticle)
-          }
-        }
-      },
-      // 动画
-      animate() {
-        let clock=new THREE.Clock()
-        let timer=clock.getElapsedTime()
-        this.mesh.rotation.y=timer*0.5
-        this.controls.update()
-        // this.mesh.rotation.x += 0.01;
-        // this.mesh.rotation.y += 0.02;
-        this.renderer.render(this.scene, this.camera);
-        requestAnimationFrame(this.animate);
+    createRenderer(){
+      this.renderer=new THREE.WebGLRenderer();
+      this.renderer.setSize(this.container.clientWidth,this.container.clientHeight)
+      this.renderer.autoClear = false;
+      this.renderer.setClearColor(0x000000, 0.0);
+      this.renderer.shadowMap.enabled = true
+      this.container.appendChild(this.renderer.domElement);
+    },
+    // 动画
+    animate() {
+      this.controls.update()
+      this.mesh.rotation.y -= 0.0040;
+      // 粒子转动
+      this.particle.rotation.x += 0.0020;
+      this.particle.rotation.y -= 0.0050;
+      this.particle.rotation.z -= 0.0050;
+      this.renderer.clear();
+      this.renderer.render(this.scene, this.camera);
+      requestAnimationFrame(this.animate);
+    },
+    createScene(){
+      this.scene = new THREE.Scene();
+    },
+    // 粒子
+    createSprites() {
+      this.particle = new THREE.Object3D();
+      this.liziGeometry = new THREE.TetrahedronGeometry(2, 0)
+      this.liziMaterial = new THREE.MeshNormalMaterial({ shading: THREE.FlatShading });
+      for (var i = 0; i < 2000; i++) {
+        this.mesh3 = new THREE.Mesh(this.liziGeometry, this.liziMaterial)
+        this.mesh3.position.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+        this.mesh3.position.multiplyScalar(90 + (Math.random() * 700));
+        this.mesh3.rotation.set(Math.random() * 1, Math.random() * 1, Math.random() *1);
+        this.particle.add(this.mesh3)
       }
+      this.scene.add(this.particle)
     },
-    mounted() {
-      this.init();
-      this.animate();
+    createCaizhi(){
+      //纹理贴图
+      const loader=new THREE.TextureLoader().load(require('../public/loader.jpg'))
+      const material = new THREE.MeshBasicMaterial({map:loader})
+      
+      this.mesh = new THREE.Mesh(new THREE.SphereGeometry(115, 30, 20), material);
+      this.mesh.position.set(0,-3,0)
+      
+      const loader1=new THREE.TextureLoader().load(require('../public/color.jpg'))
+      const material1=new THREE.MeshBasicMaterial({map:loader1})
+      this.mesh1=new THREE.Mesh(new THREE.BoxGeometry(5,5,2),material1)
+      this.mesh1.position.set(60,80,60)
+      this.mesh1.rotation.set(0,17.1,0)
+
+
+
+      this.scene.add(this.mesh1,this.mesh)
     },
-  };
-  </script>
-  
-  <style>
-  /* *{
-    margin: 0;
-    padding: 0;
-  } */
-  #container {
-    position: absolute;
-    width: 100%;
-    height: 100%;
+    createCamera(){
+      this.container=document.querySelector('#container')
+      this.camera=new THREE.PerspectiveCamera(
+        70,
+        this.container.clientWidth/this.container.clientHeight,
+        1,
+        1000
+      )
+      this.camera.position.set(120,150,120)
+      this.camera.lookAt(this.mesh1.position)
+      this.scene.add(this.camera)
+    },
+    // 灯光
+    createLight(){
+      this.lights = [];
+      this.lights[0] = new THREE.DirectionalLight(0xffffff, 2);
+      this.lights[0].position.set(1, 0, 0);
+      this.lights[1] = new THREE.DirectionalLight(0xffffff, 2);
+      this.lights[1].position.set(0.75, 1, 0.5)
+      this.lights[2] = new THREE.DirectionalLight(0xffffff, 2);
+      this.lights[2].position.set(-0.75, -1, 0.5);
+      this.scene.add(this.lights[0]);
+      this.scene.add(this.lights[1]);
+      this.scene.add(this.lights[2]);
+    },
+    createCountrols(){
+      // 开启鼠标缓震
+      this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+      this.controls.enableDamping = true
+    }
   }
-  html {
-    width: 100%;
-    height: 100%;
-    
-    background: #11e8bb; /* Old browsers */
-    background: -moz-linear-gradient(top,  #11e8bb 0%, #8200c9 100%);
-    background: linear-gradient(to bottom,  #11e8bb 0%,#8200c9 100%); 
-    overflow: hidden; 
-  }
-  
-  body {
-    margin: 0;
-    padding: 0;
-  }
-  </style>
-  
+};
+</script>
+
+<style>
+*{
+  margin: 0;
+  padding: 0;
+}
+#container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: #074cfb;
+  background: -moz-linear-gradient(top,  #074cfb 0%, #a7bdd7 100%); /* FF3.6-15 */
+  background: linear-gradient(to bottom,  #074cfb 0%,#a7bdd7 100%);
+}
+
+</style>
